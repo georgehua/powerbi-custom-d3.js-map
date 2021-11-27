@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="http://d3js.org/d3.v5.min.js"></script>
+    <script src="http://d3js.org/topojson.v1.min.js"></script>
+    <style>
+        .province1 { fill: #222; }
+        .province2 { fill: #aaa; }
+    </style>
+</head>
+
+<body>
+    <script type="text/JavaScript">
+
+function zoomed() {
+      g
+        .selectAll('path') // To prevent stroke width from scaling
+        .attr('transform', d3.event.transform);
+    }
+
+const zoom = d3.zoom()
+      .scaleExtent([1, 8])
+      .on('zoom', zoomed);
+
+
+/* D3 code here */
+var w = 800; var h = 600;
+var svg = d3.select("body").append("svg")
+.attr("width", w)
+.attr("height", h)
+
+
+
+var projection = d3.geoAzimuthalEqualArea()
+.rotate([100, -45])
+.center([5, 20])
+.scale(800)
+.translate([w/2, h/2])
+
+var path = d3.geoPath()
+.projection(projection);
+
+
+var colour = d3.scaleLinear()
+.domain([0, 52])
+.range(["rgb(197, 238, 226)","rgb(133, 212, 216)",
+"rgb(72, 143, 190)"]);
+
+// svg.call(zoom);
+
+d3.json("ca-topo.json", function(ca) {
+
+    svg.selectAll("append")
+    .data(topojson.feature(ca, ca.objects.provinces).features)
+    .enter()
+    .append("path")
+    .attr("d", path)
+    .attr("fill", function(d, i) { return colour(i); })
+    .attr("stroke", "#fff");
+
+});
+
+
+
+
+
+</script>
+</body>
+
+</html>
