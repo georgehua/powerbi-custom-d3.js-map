@@ -1,9 +1,63 @@
-p {
-    font-size: 20px;
-    font-weight: bold;
-    em {
-        background: yellow;
-        padding: 5px;
-        
-    }
+svg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%
+}
+
+.background {
+    fill: none;
+    pointer-events: all;
+}
+
+.feature {
+    fill: #ccc;
+    cursor: pointer;
+}
+
+.feature.active {
+    fill: orange !important;
+}
+
+.mesh {
+    fill: none;
+    stroke: #fff;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.pin {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    margin-left: 115px;
+
+    border-radius: 50%;
+    border: 8px solid #fff;
+    width: 8px;
+    height: 8px;
+}
+
+.pin::after {
+    position: absolute;
+    content: '';
+    width: 0px;
+    height: 0px;
+    bottom: -30px;
+    left: -6px;
+    border: 10px solid transparent;
+    border-top: 17px solid #fff;
+}
+
+.d3-tip {
+line-height: 1;
+padding: 12px;
+background: rgba(43,43,43, 0.8);
+color: #fff;
+border-radius: 2px;
+}
+.mark:hover {
+fill: red !important;
+cursor: pointer;
 }
