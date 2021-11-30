@@ -39,7 +39,8 @@ import DataView = powerbi.DataView;
 import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnumerationObject;
 import IVisualHost = powerbi.extensibility.IVisualHost;
 import * as d3 from "d3";
-import d3Tip from "d3-tip";
+import * as d3Tip from 'd3-tip';
+
 
 // var topology = topojson.topology({ foo: geojson });
 export function logExceptions(): MethodDecorator {
@@ -64,6 +65,10 @@ export class Visual implements IVisual {
 
     @logExceptions()
     public update(options: VisualUpdateOptions) {
+
+        let dataView: DataView = options.dataViews[0];
+
+        console.log(dataView)
 
         var width = 960,
             height = 500,
@@ -118,13 +123,13 @@ export class Visual implements IVisual {
         ];
 
 
-        // var tip = d3Tip
-        //     .attr('class', 'd3-tip')
-        //     .offset([-5, 0])
-        //     .html(function (d) {
-        //         return d.name
-        //     })
-        // svg.call(tip);
+        var tip = d3Tip.default()
+            .attr('class', 'd3-tip')
+            .offset([-5, 0])
+            .html(function (d) {
+                return d.name
+            })
+        svg.call(tip);
 
         d3.json("https://raw.githubusercontent.com/georgehua/powerbi-custom-d3.js-map/main/customMap/ca-topo.json", function (error, can) {
             if (error) throw error;
@@ -144,21 +149,29 @@ export class Visual implements IVisual {
 
 
 
+                g.selectAll(".place-label")
+                .data(topojson.feature(can, can.objects['provinces'].geometries).features)
+            .enter().append("text")
+                .attr("class", "place-label")
+                .attr("transform", function(d) { return "translate(" + projection([d.long, d.lat]) + ")"; })
+                .attr("dy", ".35em")
+                .text(function(d) { return d.properties.NAME; });
+
             g.selectAll(".mark")//adding mark in the group
                 .data(marks)
                 .enter()
                 .append("path")
                 .attr('class', 'mark')
                 .attr("viewBox", "0 0 5 5")
-                .attr('width', 5)
-                .attr('height', 5)
+                .attr('width', 40)
+                .attr('height', 28)
                 .attr("d", "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z")
                 .attr("fill", "#000")
                 .attr("transform", function (d) {
                     return "translate(" + projection([d.long, d.lat]) + ")";
                 })
-                // .on("mouseover", tip.show)
-                // .on("mouseleave", tip.hide)
+                .on("mouseover", tip.show)
+                .on("mouseleave", tip.hide)
 
 
 

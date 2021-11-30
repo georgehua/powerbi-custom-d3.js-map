@@ -1,20 +1,25 @@
 {
     "dataRoles": [
         {
-            "displayName": "Category Data",
-            "name": "category",
+            "displayName": "Tooltip Values",
+            "name": "tooltip",
+            "kind": "GroupingOrMeasure"
+        },
+        {
+            "displayName": "Latitude",
+            "name": "lat",
             "kind": "Grouping"
         },
         {
-            "displayName": "Measure Data",
-            "name": "measure",
-            "kind": "Measure"
+            "displayName": "Longtitude",
+            "name": "long",
+            "kind": "Grouping"
         }
     ],
     "dataViewMappings": [
         {
             "conditions": [
-                { "measure": { "max": 8 } }
+                { "lat": { "max": 1 }, "long": { "max": 1 } }
             ],
             "single": {
                 "role": "measure"

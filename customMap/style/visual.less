@@ -51,13 +51,17 @@ svg {
 }
 
 .d3-tip {
-line-height: 1;
-padding: 12px;
-background: rgba(43,43,43, 0.8);
-color: #fff;
-border-radius: 2px;
+    line-height: 1;
+    padding: 12px;
+    background: rgba(43, 43, 43, 0.8);
+    color: #fff;
+    border-radius: 2px;
 }
+
 .mark:hover {
-fill: red !important;
-cursor: pointer;
+    fill: red !important;
+    cursor: pointer;
+    -webkit-filter: drop-shadow(12px 12px 7px rgba(0, 0, 0, 0.5));
+    filter: drop-shadow(12px 12px 7px rgba(0, 0, 0, 0.5));
+    
 }
