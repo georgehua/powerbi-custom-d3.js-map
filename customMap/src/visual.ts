@@ -28,7 +28,6 @@
 import "core-js/stable";
 import "./../style/visual.less";
 import powerbi from "powerbi-visuals-api";
-// import * as topojson from "topojson";
 import * as topojson from "topojson-client";
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
@@ -40,9 +39,9 @@ import VisualObjectInstanceEnumerationObject = powerbi.VisualObjectInstanceEnume
 import IVisualHost = powerbi.extensibility.IVisualHost;
 import * as d3 from "d3";
 import * as d3Tip from 'd3-tip';
+import * as Datamap from "datamaps";
 
 
-// var topology = topojson.topology({ foo: geojson });
 export function logExceptions(): MethodDecorator {
     return function (target: Object, propertyKey: string, descriptor: TypedPropertyDescriptor<any>): TypedPropertyDescriptor<any> {
         return {
@@ -68,156 +67,228 @@ export class Visual implements IVisual {
 
         let dataView: DataView = options.dataViews[0];
 
-        console.log(dataView)
+        var i_lat = 0
+        var i_long = 1
+        var i_org = 2
+        var i_site = 3
+        var i_total_count = 4
+        var i_reg_prev = 5
 
-        var width = 960,
-            height = 500,
-            active = d3.select(null);
-
-
-
-        var projection = d3.geo.orthographic().clipAngle(90).rotate([98, -60]).scale(600).translate([500, 200])
-            .scale(700)
-            .translate([width / 2, height / 2]);
-
-        var cscale = d3.scale.linear()
-            .domain([0, 52])
-            .range(["rgb(197, 238, 226)", "rgb(133, 212, 216)",
-                "rgb(72, 143, 190)"]);
-
-        var zoom = d3.behavior.zoom()
-            .translate([0, 0])
-            .scale(1)
-            .scaleExtent([1, 100])
-            .on("zoom", zoomed);
-
-        var path = d3.geo.path()
-            .projection(projection);
-
-        var svg = d3.select("body")
+        d3.select("body")
             .append("div")
             .attr("id", "container")
-            .append("svg")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("id", "my_dataviz")
-            .on("click", stopped, true);
-
-        svg.append("rect")
-            .attr("class", "background")
-            .attr("width", width)
-            .attr("height", height)
-            .on("click", reset);
-
-        var g = svg.append("g");
-
-        svg
-            .call(zoom) // delete this line to disable free zooming
-            .call(zoom.event);
 
 
-        const marks = [
-            { long: -79.347015, lat: 43.651070, name: "Toronto" }, // corsica
-            { long: -114.066666, lat: 51.049999, name: "Otterburn Park, QC" }, // nice
+        var map = new Datamap({
+            element: document.getElementById('container'),
+            scope: 'canada',
+            geographyConfig: {
+                popupOnHover: false,
+                highlightOnHover: false,
+                borderColor: 'grey',
+                borderWidth: 0.8,
+                dataUrl: 'https://rawgit.com/Anujarya300/bubble_maps/master/data/geography-data/canada.topo.json'
+                //dataJson: topoJsonData
+            },
+            fills: {
+                'MAJOR': '#000',
+                'MEDIUM': '#0fa0fa',
+                'MINOR': '#bada55',
+                defaultFill: '#dddddd'
+            },
+            data: {
+                'SK': { fillKey: 'MINOR' }
+            },
+            setProjection: function (element) {
+                var projection = d3.geo.mercator()
+                    .center([-106.3468, 56.1304]) // always in [East Latitude, North Longitude]
+                    .scale(700)
+                    .translate([element.offsetWidth / 2, element.offsetHeight / 2]);
 
-        ];
-
-
-        var tip = d3Tip.default()
-            .attr('class', 'd3-tip')
-            .offset([-5, 0])
-            .html(function (d) {
-                return d.name
-            })
-        svg.call(tip);
-
-        d3.json("https://raw.githubusercontent.com/georgehua/powerbi-custom-d3.js-map/main/customMap/ca-topo.json", function (error, can) {
-            if (error) throw error;
-
-            g.selectAll("path")
-                .data(topojson.feature(can, can.objects['provinces']).features)
-                .enter().append("path")
-                .attr("d", path)
-                .attr("class", "feature")
-                .style("fill", function (d, i) { return cscale(i); })
-                .on("click", clicked);
-
-            g.append("path")
-                .datum(topojson.mesh(can, can.objects['provinces'], function (a, b) { return a !== b; }))
-                .attr("class", "mesh")
-                .attr("d", path);
-
-
-
-                g.selectAll(".place-label")
-                .data(topojson.feature(can, can.objects['provinces'].geometries).features)
-            .enter().append("text")
-                .attr("class", "place-label")
-                .attr("transform", function(d) { return "translate(" + projection([d.long, d.lat]) + ")"; })
-                .attr("dy", ".35em")
-                .text(function(d) { return d.properties.NAME; });
-
-            g.selectAll(".mark")//adding mark in the group
-                .data(marks)
-                .enter()
-                .append("path")
-                .attr('class', 'mark')
-                .attr("viewBox", "0 0 5 5")
-                .attr('width', 40)
-                .attr('height', 28)
-                .attr("d", "M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z")
-                .attr("fill", "#000")
-                .attr("transform", function (d) {
-                    return "translate(" + projection([d.long, d.lat]) + ")";
-                })
-                .on("mouseover", tip.show)
-                .on("mouseleave", tip.hide)
-
-
-
+                var path = d3.geo.path().projection(projection);
+                return { path: path, projection: projection };
+            }
         });
 
+        // map.labels({labelColor: 'blue', fontSize: 12});
+        map.labels({'customLabelText': {'Ontario': "Ontario"}});
+        /*******
+   
+   Marker Custom Plugin Code
+   
+   ********/
+
+        function handleMarkers(layer, data, options) {
+            var self = this,
+                fillData = this.options.fills,
+                svg = this.svg;
+
+            if (!data || (data && !data.slice)) {
+                throw "Datamaps Error - markers must be an array";
+            }
+
+            var markers = layer.selectAll('image.datamaps-marker').data(data, JSON.stringify);
+
+            markers
+                .enter()
+                .append('image')
+                .attr('class', 'datamaps-marker')
+                .attr('xlink:href', function (datum) {
+                    return datum.iconUrl || options.defaultIcon;
+                })
+                .attr('height', 40)
+                .attr('width', 40)
+                .attr('x', function (datum) {
+                    var latLng;
+                    if (datumHasCoords(datum)) {
+                        latLng = self.latLngToXY(datum.latitude, datum.longitude);
+                    }
+                    else if (datum.centered) {
+                        latLng = self.path.centroid(svg.select('path.' + datum.centered).data()[0]);
+                    }
+                    datum.realx = latLng[0];
+                    if (latLng) return latLng[0] - 10;
+                })
+                .attr('y', function (datum) {
+                    var latLng;
+                    if (datumHasCoords(datum)) {
+                        latLng = self.latLngToXY(datum.latitude, datum.longitude);
+                    }
+                    else if (datum.centered) {
+                        latLng = self.path.centroid(svg.select('path.' + datum.centered).data()[0]);
+                    }
+                    datum.realy = latLng[1];
+                    if (latLng) return latLng[1] - 20;
+                })
 
 
+            markers.exit()
+                .transition()
+                .attr("height", 0)
+                .remove();
 
-        function clicked(d) {
-            if (active.node() === this) return reset();
-            active.classed("active", false);
-            active = d3.select(this).classed("active", true);
+            function datumHasCoords(datum) {
+                return typeof datum !== 'undefined' && typeof datum.latitude !== 'undefined' && typeof datum.longitude !== 'undefined';
+            }
 
-            var bounds = path.bounds(d),
-                dx = bounds[1][0] - bounds[0][0],
-                dy = bounds[1][1] - bounds[0][1],
-                x = (bounds[0][0] + bounds[1][0]) / 2,
-                y = (bounds[0][1] + bounds[1][1]) / 2,
-                scale = .9 / Math.max(dx / width, dy / height),
-                translate = [width / 2 - scale * x, height / 2 - scale * y];
-
-            svg.transition()
-                .duration(750)
-                .call(zoom.translate(translate).scale(scale).event);
         }
 
-        function reset() {
-            active.classed("active", false);
-            active = d3.select(null);
+        /*******
+        End Marker Custom Plugin Code
+        ********/
 
-            svg.transition()
-                .duration(750)
-                .call(zoom.translate([0, 0]).scale(1).event);
+
+        /********
+        Add & Register Plugin
+        *********/
+
+        map.addPlugin('markers', handleMarkers)
+
+
+        /*******
+        Zoom behavior
+        ********/
+        // Keep a reference to the d3 zoom behavior
+        var zoom = d3.behavior.zoom();
+        var currentZoom = null;
+
+        // Reset d3.event.translate and d3.event.scale
+        function resetZoom() {
+            zoom.scale(1);
+            zoom.translate([0, 0]);
+        }
+        var zoomInOpts = {
+            scaleFactor: 2,
+            center: {
+                lat: 45,
+                lng: -90
+            },
+            transition: {
+                duration: 1000
+            },
+            onZoomComplete: function (zoomData) {
+                currentZoom = zoomData;
+                resetZoom();
+            }
+        };
+        var zoomOutOpts = {
+            scaleFactor: 0.5,
+            center: {
+                lat: 40,
+                lng: -90
+            },
+            transition: {
+                duration: 1000
+            },
+            onZoomComplete: function (zoomData) {
+                currentZoom = zoomData;
+                resetZoom();
+            }
+        };
+
+        function transformStr(x, y, scale) {
+            //var translateX = d3.event.translate[0];
+            //var translateY = d3.event.translate[1];
+            //var scale = d3.event.scale;
+            return "translate(" + [x, y] + ")scale(" + scale + ")";
         }
 
-        function zoomed() {
-            g.style("stroke-width", 1.5 / d3.event.scale + "px");
-            g.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+        function redraw() {
+            var translateX = (<any>d3.event).translate[0];
+            var translateY = (<any>d3.event).translate[1];
+            var scale = (<any>d3.event).scale;
+            console.log("Scale: " + (<any>d3.event).scale);
+
+            if (currentZoom) {
+                console.log("CurrentZoom.scale: " + currentZoom.scale);
+                scale *= currentZoom.scale;
+                translateX += currentZoom.translate.x
+                translateY += currentZoom.translate.y;
+            }
+
+            map.svg.selectAll("g")
+                .attr("transform", transformStr(translateX, translateY, scale))
+                ;
+
+            map.svg.selectAll("image")
+                .attr("height", 20 * (1 / scale))
+                .attr("width", 20 * (1 / scale))
+                .attr("x", function (d) {
+                    return d.realx - (20 * (1 / scale) / 2);
+                })
+                .attr("y", function (d) {
+                    return d.realy - (20 * (1 / scale));
+                });
         }
 
-        // If the drag behavior prevents the default click,
-        // also stop propagation so we don’t click-to-zoom.
-        function stopped() {
-            if (d3.event.defaultPrevented) d3.event.stopPropagation();
+        // on mousewhel
+        map.svg.call(zoom.on("zoom", redraw));
+
+
+
+
+        /*******
+        Call Plugin and setup some button handlers
+        ********/
+
+        function setMarkers() {
+            map.markers([
+                { name: 'Austin, TX', iconUrl: 'http://simpleicon.com/wp-content/uploads/map-marker-1.svg', latitude: 43.651070, longitude: -79.347015, fillKey: 'gt50' },
+                { name: 'Iceland', iconUrl: 'http://simpleicon.com/wp-content/uploads/map-marker-1.svg', latitude: 51.049999, longitude: -114.066666, fillKey: 'lt50' },
+                { name: 'Brazil', centered: 'BRA', fillKey: 'gt50' },
+                { name: 'Hot again', latitude: 10, longitude: 0, fillKey: 'gt50' }
+            ],
+                { defaultIcon: 'https://cdn0.iconfinder.com/data/icons/small-n-flat/24/678111-map-marker-128.png' },
+                {
+                    popupTemplate: function (geo, data) {
+                        console.log("hovered")
+                        return "<div class='hoverinfo'>Popup for " + data.name + "</div>";
+                    }
+                }
+            );
         }
 
+        setMarkers();
     }
 
 

@@ -15,10 +15,12 @@
   "dependencies": {
     "@babel/runtime": "7.6.0",
     "@babel/runtime-corejs2": "7.6.0",
+    "@types/d3": "^3.5.38",
     "core-js": "3.2.1",
     "d3": "^3.5.5",
     "d3-tip": "^0.9.1",
     "d3-zoom": "^3.0.0",
+    "datamaps": "^0.5.9",
     "powerbi-visuals-api": "~3.8.0",
     "powerbi-visuals-utils-dataviewutils": "2.2.1",
     "topojson": "^3.0.2",

@@ -12,3 +12,9 @@ CSS Marker https://codepen.io/znak/pen/XXrRvj?editors=0110
 
 
 D3 marker zooming issue: https://stackoverflow.com/questions/34323318/d3-us-state-map-with-markers-zooming-transform-issues
+
+
+Excellent demo using d3-datamaps: http://jsbin.com/barekeyaca/edit?html,output
+
+
+d3-datamaps github: https://github.com/markmarkoh/datamaps
